@@ -94,14 +94,41 @@ describe('tradingOnboardingDialogs', () => {
     expect(onModalOpenChange).not.toHaveBeenCalled()
   })
 
-  it('keeps other onboarding dialogs dismissible', async () => {
+  it('only lets the explicit email skip button skip the email step', async () => {
+    const user = userEvent.setup()
+    const onModalOpenChange = vi.fn()
+    const onEmailSkip = vi.fn()
+
+    render(
+      <TradingOnboardingDialogs
+        {...createProps({
+          activeModal: 'email',
+          onModalOpenChange,
+          onEmailSkip,
+        })}
+      />,
+    )
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument()
+
+    await user.keyboard('{Escape}')
+
+    expect(onModalOpenChange).not.toHaveBeenCalled()
+
+    await user.click(screen.getByRole('button', { name: 'Do this later' }))
+
+    expect(onEmailSkip).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps later onboarding dialogs dismissible', async () => {
     const user = userEvent.setup()
     const onModalOpenChange = vi.fn()
 
     render(
       <TradingOnboardingDialogs
         {...createProps({
-          activeModal: 'email',
+          activeModal: 'enable',
           onModalOpenChange,
         })}
       />,
@@ -112,7 +139,7 @@ describe('tradingOnboardingDialogs', () => {
     await user.keyboard('{Escape}')
 
     await waitFor(() => {
-      expect(onModalOpenChange).toHaveBeenCalledWith('email', false)
+      expect(onModalOpenChange).toHaveBeenCalledWith('enable', false)
     })
   })
 })

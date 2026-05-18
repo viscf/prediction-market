@@ -17,6 +17,7 @@ import { getPublicAssetUrl } from '@/lib/storage'
 import { DEFAULT_THEME_SITE_NAME } from '@/lib/theme-site-identity'
 import { ensureUserTradingAuthSecretFingerprint } from '@/lib/trading-auth/server'
 import { sanitizeTradingAuthSettings } from '@/lib/trading-auth/utils'
+import { isWalletPlaceholderEmail } from '@/lib/user-email'
 import * as schema from './db/schema'
 
 const TWO_FACTOR_COOKIE_NAME = 'two_factor'
@@ -209,6 +210,7 @@ export const auth = betterAuth({
   plugins: [
     customSession(async ({ user, session }) => {
       const userId = String((user as any).id ?? '')
+      const email = isWalletPlaceholderEmail(user.email) ? '' : user.email
       const rawSettings = (user as any).settings as Record<string, any> | undefined
       const hydratedSettings = rawSettings && userId
         ? await ensureUserTradingAuthSecretFingerprint(userId, rawSettings)
@@ -220,6 +222,7 @@ export const auth = betterAuth({
       return {
         user: {
           ...user,
+          email,
           settings,
           image: user.image ? getPublicAssetUrl(user.image) : '',
           is_admin: isAdminWallet(user.name),

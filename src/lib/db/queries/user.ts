@@ -11,7 +11,6 @@ import { runQuery } from '@/lib/db/utils/run-query'
 import { isDepositWalletDeployed } from '@/lib/deposit-wallet'
 import { db } from '@/lib/drizzle'
 import { getPublicAssetUrl } from '@/lib/storage'
-import { sanitizeTradingAuthSettings } from '@/lib/trading-auth/utils'
 import { normalizeAddress } from '@/lib/wallet'
 
 export const UserRepository = {
@@ -208,13 +207,6 @@ export const UserRepository = {
       }
 
       const user: any = session.user
-      const rawEmail = typeof user.email === 'string' ? user.email : ''
-      const shouldRedactEmail = Boolean(rawEmail && rawEmail.startsWith('0x') && rawEmail.split('@')[0].length === 42)
-
-      user.email = shouldRedactEmail ? '' : rawEmail
-      if (user.settings) {
-        user.settings = sanitizeTradingAuthSettings(user.settings)
-      }
 
       if (minimal) {
         return user

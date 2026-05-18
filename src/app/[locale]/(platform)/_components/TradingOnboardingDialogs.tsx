@@ -385,6 +385,7 @@ function EmailDialog({
       onOpenChange={onOpenChange}
       title={t('What\'s your email?')}
       description={t('Add your email to receive market and trading notifications.')}
+      dismissible={false}
       icon={(
         <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
           <MailIcon className="size-8" />
