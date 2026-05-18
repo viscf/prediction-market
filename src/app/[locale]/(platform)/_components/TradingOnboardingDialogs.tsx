@@ -26,8 +26,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer'
 import { Input } from '@/components/ui/input'
 import { InputError } from '@/components/ui/input-error'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { useSiteIdentity } from '@/hooks/useSiteIdentity'
 
 type OnboardingModal = 'username' | 'email' | 'enable' | 'enable-status' | 'approve' | 'auto-redeem' | null
@@ -89,11 +97,36 @@ function OnboardingDialogShell({
   children: ReactNode
   dismissible?: boolean
 }) {
+  const isMobile = useIsMobile()
+
   function handleOpenChange(nextOpen: boolean) {
     if (!dismissible && !nextOpen) {
       return
     }
     onOpenChange(nextOpen)
+  }
+
+  if (isMobile) {
+    return (
+      <Drawer
+        open={open}
+        onOpenChange={handleOpenChange}
+        dismissible={dismissible}
+      >
+        <DrawerContent className="max-h-[90vh] w-full bg-background px-4 pt-4 pb-6">
+          <DrawerHeader className="space-y-3 text-center">
+            {icon}
+            <DrawerTitle className="text-center text-2xl font-bold text-foreground">
+              {title}
+            </DrawerTitle>
+            <DrawerDescription className="text-center text-base text-muted-foreground">
+              {description}
+            </DrawerDescription>
+          </DrawerHeader>
+          {children}
+        </DrawerContent>
+      </Drawer>
+    )
   }
 
   return (
@@ -500,12 +533,65 @@ function EnableTradingStatusDialog({
   const t = useExtracted()
   const isSigning = step === 'enabling'
   const dismissible = Boolean(error)
+  const isMobile = useIsMobile()
 
   function handleOpenChange(nextOpen: boolean) {
     if (!dismissible && !nextOpen) {
       return
     }
     onOpenChange(nextOpen)
+  }
+
+  const timeline = (
+    <div className="mt-5 space-y-0">
+      <TimelineStep
+        title={t('Deploy Wallet')}
+        description={t('Deploy a smart contract wallet to enable trading')}
+        complete={hasDeployedDepositWallet}
+        trailing={hasDeployedDepositWallet ? t('Done') : null}
+      />
+      <TimelineStep
+        title={t('Enable Trading')}
+        description={t('Sign a message to generate your API keys')}
+        complete={hasTradingAuth}
+        trailing={hasTradingAuth ? t('Done') : null}
+        action={!hasTradingAuth && hasDeployedDepositWallet
+          ? {
+              label: t('Sign'),
+              loading: isSigning,
+              onClick: onEnableTradingAuth,
+            }
+          : undefined}
+        error={!hasTradingAuth ? error : null}
+      />
+      <TimelineStep
+        title={t('Approve Tokens')}
+        description={t('Approve token spending for trading')}
+        complete={hasTokenApprovals}
+        trailing={hasTokenApprovals ? t('Done') : null}
+        isLast
+      />
+    </div>
+  )
+
+  if (isMobile) {
+    return (
+      <Drawer
+        open={open}
+        onOpenChange={handleOpenChange}
+        dismissible={dismissible}
+      >
+        <DrawerContent className="max-h-[90vh] w-full bg-background px-4 pt-4 pb-6">
+          <DrawerHeader className="space-y-2 text-center">
+            <DrawerTitle className="text-center text-xl font-bold text-foreground">
+              {t('Enable Trading')}
+            </DrawerTitle>
+          </DrawerHeader>
+
+          {timeline}
+        </DrawerContent>
+      </Drawer>
+    )
   }
 
   return (
@@ -530,35 +616,7 @@ function EnableTradingStatusDialog({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="mt-5 space-y-0">
-          <TimelineStep
-            title={t('Deploy Wallet')}
-            description={t('Deploy a smart contract wallet to enable trading')}
-            complete={hasDeployedDepositWallet}
-            trailing={hasDeployedDepositWallet ? t('Done') : null}
-          />
-          <TimelineStep
-            title={t('Enable Trading')}
-            description={t('Sign a message to generate your API keys')}
-            complete={hasTradingAuth}
-            trailing={hasTradingAuth ? t('Done') : null}
-            action={!hasTradingAuth && hasDeployedDepositWallet
-              ? {
-                  label: t('Sign'),
-                  loading: isSigning,
-                  onClick: onEnableTradingAuth,
-                }
-              : undefined}
-            error={!hasTradingAuth ? error : null}
-          />
-          <TimelineStep
-            title={t('Approve Tokens')}
-            description={t('Approve token spending for trading')}
-            complete={hasTokenApprovals}
-            trailing={hasTokenApprovals ? t('Done') : null}
-            isLast
-          />
-        </div>
+        {timeline}
       </DialogContent>
     </Dialog>
   )

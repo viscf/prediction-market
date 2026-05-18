@@ -3,6 +3,10 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import TradingOnboardingDialogs from '@/app/[locale]/(platform)/_components/TradingOnboardingDialogs'
 
+const mocks = vi.hoisted(() => ({
+  useIsMobile: vi.fn(() => false),
+}))
+
 vi.mock('next-intl', () => ({
   useExtracted: () => (message: string) => message,
 }))
@@ -27,6 +31,10 @@ vi.mock('@/components/AppLink', () => ({
 
 vi.mock('@/hooks/useSiteIdentity', () => ({
   useSiteIdentity: () => ({ name: 'Kuest' }),
+}))
+
+vi.mock('@/hooks/useIsMobile', () => ({
+  useIsMobile: mocks.useIsMobile,
 }))
 
 type TradingOnboardingDialogsProps = ComponentProps<typeof TradingOnboardingDialogs>
@@ -73,6 +81,11 @@ function createProps(
 }
 
 describe('tradingOnboardingDialogs', () => {
+  beforeEach(() => {
+    mocks.useIsMobile.mockReset()
+    mocks.useIsMobile.mockReturnValue(false)
+  })
+
   it('does not let the username step close from dialog dismissal controls', async () => {
     const user = userEvent.setup()
     const onModalOpenChange = vi.fn()
@@ -238,5 +251,21 @@ describe('tradingOnboardingDialogs', () => {
     await waitFor(() => {
       expect(onModalOpenChange).toHaveBeenCalledWith('approve', false)
     })
+  })
+
+  it('renders onboarding surfaces as drawers on mobile', () => {
+    mocks.useIsMobile.mockReturnValue(true)
+
+    render(
+      <TradingOnboardingDialogs
+        {...createProps({
+          activeModal: 'enable',
+          enableTradingError: 'Relayer is unavailable.',
+        })}
+      />,
+    )
+
+    expect(document.querySelector('[data-slot="drawer-content"]')).toBeInTheDocument()
+    expect(document.querySelector('[data-slot="dialog-content"]')).not.toBeInTheDocument()
   })
 })
