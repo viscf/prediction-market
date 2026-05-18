@@ -442,6 +442,7 @@ function EnableTradingDialog({
   const t = useExtracted()
   const site = useSiteIdentity()
   const isLoading = step === 'enabling' || step === 'deploying'
+  const dismissible = Boolean(error)
 
   return (
     <OnboardingDialogShell
@@ -449,6 +450,7 @@ function EnableTradingDialog({
       onOpenChange={onOpenChange}
       title={t('Enable Trading')}
       description={t('Let\'s set up your wallet to trade on {siteName}.', { siteName: site.name })}
+      dismissible={dismissible}
       icon={(
         <div className="mx-auto flex size-20 items-center justify-center rounded-2xl bg-primary/10 text-primary">
           <WalletIcon className="size-10" />
@@ -497,10 +499,31 @@ function EnableTradingStatusDialog({
 }) {
   const t = useExtracted()
   const isSigning = step === 'enabling'
+  const dismissible = Boolean(error)
+
+  function handleOpenChange(nextOpen: boolean) {
+    if (!dismissible && !nextOpen) {
+      return
+    }
+    onOpenChange(nextOpen)
+  }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm border bg-background p-6">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent
+        className="max-w-sm border bg-background p-6"
+        showCloseButton={dismissible}
+        onEscapeKeyDown={(event) => {
+          if (!dismissible) {
+            event.preventDefault()
+          }
+        }}
+        onInteractOutside={(event) => {
+          if (!dismissible) {
+            event.preventDefault()
+          }
+        }}
+      >
         <DialogHeader className="space-y-2 text-center">
           <DialogTitle className="text-center text-xl font-bold text-foreground">
             {t('Enable Trading')}
@@ -617,6 +640,7 @@ function ApproveTokensDialog({
 }) {
   const t = useExtracted()
   const isLoading = step === 'signing'
+  const dismissible = Boolean(error)
 
   return (
     <OnboardingDialogShell
@@ -624,6 +648,7 @@ function ApproveTokensDialog({
       onOpenChange={onOpenChange}
       title={t('Approve Tokens')}
       description={t('Approve token spending for trading')}
+      dismissible={dismissible}
       icon={(
         <div className="mx-auto flex size-20 items-center justify-center rounded-2xl bg-primary/10 text-primary">
           <WalletIcon className="size-10" />

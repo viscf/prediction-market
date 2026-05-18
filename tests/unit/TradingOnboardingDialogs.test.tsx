@@ -121,11 +121,11 @@ describe('tradingOnboardingDialogs', () => {
     expect(onEmailSkip).toHaveBeenCalledTimes(1)
   })
 
-  it('keeps later onboarding dialogs dismissible', async () => {
+  it('keeps enable trading non-dismissible until an error appears', async () => {
     const user = userEvent.setup()
     const onModalOpenChange = vi.fn()
 
-    render(
+    const view = render(
       <TradingOnboardingDialogs
         {...createProps({
           activeModal: 'enable',
@@ -134,12 +134,109 @@ describe('tradingOnboardingDialogs', () => {
       />,
     )
 
+    expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument()
+
+    await user.keyboard('{Escape}')
+
+    expect(onModalOpenChange).not.toHaveBeenCalled()
+
+    view.rerender(
+      <TradingOnboardingDialogs
+        {...createProps({
+          activeModal: 'enable',
+          enableTradingError: 'Relayer is unavailable.',
+          onModalOpenChange,
+        })}
+      />,
+    )
+
     expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
 
+    onModalOpenChange.mockClear()
     await user.keyboard('{Escape}')
 
     await waitFor(() => {
       expect(onModalOpenChange).toHaveBeenCalledWith('enable', false)
+    })
+  })
+
+  it('keeps enable trading status non-dismissible until an error appears', async () => {
+    const user = userEvent.setup()
+    const onModalOpenChange = vi.fn()
+
+    const view = render(
+      <TradingOnboardingDialogs
+        {...createProps({
+          activeModal: 'enable-status',
+          hasDeployedDepositWallet: true,
+          onModalOpenChange,
+        })}
+      />,
+    )
+
+    expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument()
+
+    await user.keyboard('{Escape}')
+
+    expect(onModalOpenChange).not.toHaveBeenCalled()
+
+    view.rerender(
+      <TradingOnboardingDialogs
+        {...createProps({
+          activeModal: 'enable-status',
+          enableTradingError: 'Relayer is unavailable.',
+          hasDeployedDepositWallet: true,
+          onModalOpenChange,
+        })}
+      />,
+    )
+
+    expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
+
+    onModalOpenChange.mockClear()
+    await user.keyboard('{Escape}')
+
+    await waitFor(() => {
+      expect(onModalOpenChange).toHaveBeenCalledWith('enable-status', false)
+    })
+  })
+
+  it('keeps approve tokens non-dismissible until an error appears', async () => {
+    const user = userEvent.setup()
+    const onModalOpenChange = vi.fn()
+
+    const view = render(
+      <TradingOnboardingDialogs
+        {...createProps({
+          activeModal: 'approve',
+          onModalOpenChange,
+        })}
+      />,
+    )
+
+    expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument()
+
+    await user.keyboard('{Escape}')
+
+    expect(onModalOpenChange).not.toHaveBeenCalled()
+
+    view.rerender(
+      <TradingOnboardingDialogs
+        {...createProps({
+          activeModal: 'approve',
+          onModalOpenChange,
+          tokenApprovalError: 'Relayer is unavailable.',
+        })}
+      />,
+    )
+
+    expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
+
+    onModalOpenChange.mockClear()
+    await user.keyboard('{Escape}')
+
+    await waitFor(() => {
+      expect(onModalOpenChange).toHaveBeenCalledWith('approve', false)
     })
   })
 })

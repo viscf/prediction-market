@@ -439,6 +439,16 @@ function TradingOnboardingProviderContent({
       setActiveModal('email')
       return
     }
+    if ((modal === 'enable' || modal === 'enable-status') && !enableTradingError) {
+      setDismissedModal(null)
+      setActiveModal(modal)
+      return
+    }
+    if (modal === 'approve' && !tokenApprovalError) {
+      setDismissedModal(null)
+      setActiveModal('approve')
+      return
+    }
     if (modal === 'auto-redeem') {
       setDismissedModal(modal)
       setActiveModal(null)
@@ -450,7 +460,13 @@ function TradingOnboardingProviderContent({
     setDismissedModal(modal)
     setActiveModal(null)
     setShouldContinueTradingAuthPrompt(false)
-  }, [openFundModalIfBalanceEmpty, status.needsEmail, status.needsUsername])
+  }, [
+    enableTradingError,
+    openFundModalIfBalanceEmpty,
+    status.needsEmail,
+    status.needsUsername,
+    tokenApprovalError,
+  ])
 
   const handleUsernameSubmit = useCallback(async (username: string, termsAccepted: boolean) => {
     if (isUsernameSubmitting) {
