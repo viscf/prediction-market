@@ -79,6 +79,7 @@ function OnboardingDialogShell({
   title,
   description,
   children,
+  dismissible = true,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -86,10 +87,31 @@ function OnboardingDialogShell({
   title: string
   description: string
   children: ReactNode
+  dismissible?: boolean
 }) {
+  function handleOpenChange(nextOpen: boolean) {
+    if (!dismissible && !nextOpen) {
+      return
+    }
+    onOpenChange(nextOpen)
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md border bg-background p-8">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent
+        className="max-w-md border bg-background p-8"
+        showCloseButton={dismissible}
+        onEscapeKeyDown={(event) => {
+          if (!dismissible) {
+            event.preventDefault()
+          }
+        }}
+        onInteractOutside={(event) => {
+          if (!dismissible) {
+            event.preventDefault()
+          }
+        }}
+      >
         <DialogHeader className="space-y-3 text-center">
           {icon}
           <DialogTitle className="text-center text-2xl font-bold text-foreground">
@@ -234,6 +256,7 @@ function UsernameDialog({
       onOpenChange={onOpenChange}
       title={t('Choose a username')}
       description={t('You can update this later.')}
+      dismissible={false}
     >
       <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
         <div className="relative">

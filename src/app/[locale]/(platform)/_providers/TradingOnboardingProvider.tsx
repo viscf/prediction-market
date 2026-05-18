@@ -432,6 +432,11 @@ function TradingOnboardingProviderContent({
       setActiveModal(modal)
       return
     }
+    if (modal === 'username' && status.needsUsername) {
+      setDismissedModal(null)
+      setActiveModal('username')
+      return
+    }
     if (modal === 'auto-redeem') {
       setDismissedModal(modal)
       setActiveModal(null)
@@ -443,7 +448,7 @@ function TradingOnboardingProviderContent({
     setDismissedModal(modal)
     setActiveModal(null)
     setShouldContinueTradingAuthPrompt(false)
-  }, [openFundModalIfBalanceEmpty])
+  }, [openFundModalIfBalanceEmpty, status.needsUsername])
 
   const handleUsernameSubmit = useCallback(async (username: string, termsAccepted: boolean) => {
     if (isUsernameSubmitting) {
